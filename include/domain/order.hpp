@@ -17,6 +17,8 @@ namespace mercury {
     class Order {
         private:
             // TODO : Decide which component (MatchingEngine or OrderBook) is allowed to mutate order state.
+            // Resolved: only OrderBook may mutate order lifecycle state.
+            friend class OrderBook;  
             const OrderID id_;
             const Side side_;
             const OrderType type_;
@@ -25,7 +27,7 @@ namespace mercury {
             const Quantity original_quantity_;
             Quantity remaining_quantity_;
             const SequenceNumber sequence_;
-            const Timestamp timestamp_;
+            const EventTimestamp timestamp_;
             OrderStatus status_;
             void fill(const Quantity& quantity);
             void cancel();
@@ -39,7 +41,7 @@ namespace mercury {
                 Price price, 
                 Quantity original_quantity, 
                 SequenceNumber sequence, 
-                Timestamp timestamp)
+                EventTimestamp timestamp)
                 : id_(id), 
                 side_(side), 
                 type_(type),
@@ -72,7 +74,7 @@ namespace mercury {
             Quantity remainingQuantity() const noexcept { return remaining_quantity_; }
             Quantity originalQuantity() const noexcept { return original_quantity_; }
             SequenceNumber sequenceNumber() const noexcept { return sequence_; }
-            Timestamp timestamp() const noexcept { return timestamp_; }
+            EventTimestamp timestamp() const noexcept { return timestamp_; }
             Quantity filledQuantity() const noexcept { return Quantity(original_quantity_.get() - remaining_quantity_.get()); }
             OrderStatus status() const noexcept { return status_; }
             OrderType type() const noexcept { return type_; }
