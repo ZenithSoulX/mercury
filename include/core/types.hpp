@@ -1,7 +1,8 @@
 #pragma once
 #include <cstdint>
-#include <chrono>
 #include <compare>
+#include <stdexcept>
+#include <cassert>
 
 namespace mercury {
     /** Strongly typed wrapper around primitive values.
@@ -14,21 +15,44 @@ namespace mercury {
         public :
             StrongType() = delete;
             constexpr explicit StrongType(T v) noexcept : value(v) {}
-            constexpr const T& get() const noexcept {return value;}
-            constexpr bool operator==(const StrongType&) const noexcept = default;
-            auto operator<=>(const StrongType&) const noexcept = default;
+            constexpr T get() const noexcept {return value;}
+            constexpr auto operator<=>(const StrongType&) const noexcept = default;
     };
+    class [[nodiscard]] Price {
+        public :
+            explicit constexpr Price(std::int64_t v) : value(validate(v)) {}
+            constexpr std::int64_t get() const noexcept {return value;}
+            constexpr auto operator<=>(const Price&) const noexcept = default;
+
+        private : 
+            static constexpr std::int64_t validate(std::int64_t v){
+                assert(v > 0 && "Price must be positive");
+                return v;
+            }
+            std::int64_t value;
+    };
+    class [[nodiscard]] Quantity {
+        public :
+            explicit constexpr Quantity(std::uint64_t v) : value(validate(v)) {}
+            constexpr std::uint64_t get() const noexcept {return value;}
+            constexpr auto operator<=>(const Quantity&) const noexcept = default;
+
+        private : 
+            static constexpr std::uint64_t validate(std::uint64_t v){
+                assert(v > 0 && "Quantity must be positive");
+                return v;
+            }
+            std::uint64_t value;
+    };
+
     // TODO(rahul):
     // Provide std::hash specialization.
     struct OrderIDTag {};
-    struct PriceTag {};
-    struct QuantityTag {};
     struct SequenceNumberTag {};
     struct VolumeTag {};
+    struct EventTimestampTag {};
     using OrderID = StrongType<OrderIDTag, std::uint64_t>;
-    using Price = StrongType<PriceTag, std::int64_t>;  //Price represented in integer ticks (e.g., paise, or smallest tradeable unit).
-    using Quantity = StrongType<QuantityTag, std::uint64_t>;
     using Volume = StrongType<VolumeTag, std::uint64_t>;
     using SequenceNumber = StrongType<SequenceNumberTag, std::uint64_t>;
-    using Timestamp = std::chrono::steady_clock::time_point;
+    using EventTimestamp = StrongType<EventTimestampTag, std::uint64_t>;
 }
