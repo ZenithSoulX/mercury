@@ -6,27 +6,35 @@ namespace mercury {
     : price_(price),side_(side),total_volume_(Volume{0})
     {
     }
-    void PriceLevel::addOrder(Order& order){
+    PriceLevel::Iterator PriceLevel::addOrder(Order& order){
         assert(order.price()==price_ && "Order price does not match this PriceLevel");
         assert(order.side()==side_ && "Order side does not match this PriceLevel");
         assert(order.isActive() && "Cannot add an order that is not active");
-        orders_.push_back(&order);
+        auto it = orders_.insert(orders_.end(),&order);
         total_volume_ = Volume{total_volume_.get() + order.remainingQuantity().get()};
     #ifndef NDEBUG
         verifyInvariants();
     #endif
+        return it;
     }
     void PriceLevel::removeFront(){
         assert(!empty() && "Cannot remove from an empty PriceLevel");
-        const Order& order = front();
-        total_volume_ = Volume{total_volume_.get() - order.remainingQuantity().get()};
-        orders_.pop_front();
+        erase(orders_.begin());
+    }
+    void PriceLevel::reduceVolume(Quantity amount){
+        assert(!orders_.empty() && "Cannot reduce volume of an empty PriceLevel");
+        assert(amount.get() > 0 && "Reduction amount must be positive");
+        assert(amount.get() <= total_volume_.get() && "Cannot reduce more than total volume");
+        total_volume_ = Volume{total_volume_.get() - amount.get()};
     #ifndef NDEBUG
         verifyInvariants();
     #endif
     }
     PriceLevel::Iterator PriceLevel::erase(Iterator it){
         assert(it != orders_.end() && "Cannot erase end iterator");
+        assert((*it) != nullptr && "Cannot erase a null order pointer");
+        assert((*it)->price()==price_ && "Order price does not match this PriceLevel");
+        assert((*it)->side()==side_ && "Order side does not match this PriceLevel");
         const Order& order = **it;
         total_volume_ = Volume{total_volume_.get() - order.remainingQuantity().get()};
         Iterator next_it = orders_.erase(it);
@@ -47,7 +55,7 @@ namespace mercury {
     bool PriceLevel::empty() const noexcept {
         return orders_.empty(); 
     }
-    std::size_t PriceLevel::size() const noexcept {
+    [[nodiscard]] std::size_t PriceLevel::size() const noexcept {
         return orders_.size();
     }
     Price PriceLevel::price() const noexcept {
@@ -68,7 +76,7 @@ namespace mercury {
     #ifndef NDEBUG
     void PriceLevel::verifyInvariants() const 
     {
-        std::uint64_t computed_volume =0;
+        std::uint64_t computed_volume = 0;
         for(const Order* order : orders_){
             assert(order!=nullptr);
             assert(order->price()==price_);
