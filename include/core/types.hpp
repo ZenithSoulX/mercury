@@ -46,7 +46,7 @@ namespace mercury {
     };
 
     // TODO(rahul):
-    // Provide std::hash specialization.
+    // Provide std::hash specialization and operators += -=
     struct OrderIDTag {};
     struct SequenceNumberTag {};
     struct VolumeTag {};
