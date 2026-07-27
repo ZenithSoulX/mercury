@@ -28,8 +28,9 @@ namespace mercury{
             PriceLevel(PriceLevel&&) = delete;
             PriceLevel& operator=(PriceLevel&&) = delete;
 
-            void addOrder(Order& order);
+            PriceLevel::Iterator addOrder(Order& order);
             void removeFront();
+            void reduceVolume(Quantity amount);
             Iterator erase(Iterator it);
             [[nodiscard]] Order& front();
             [[nodiscard]] const Order& front() const;
