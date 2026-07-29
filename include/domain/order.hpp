@@ -25,7 +25,7 @@ namespace mercury {
             const TimeInForce tif_;
             const Price price_;
             const Quantity original_quantity_;
-            Quantity remaining_quantity_;
+            Volume remaining_quantity_;
             const SequenceNumber sequence_;
             const EventTimestamp timestamp_;
             OrderStatus status_;
@@ -48,7 +48,7 @@ namespace mercury {
                 tif_(tif),
                 price_(price), 
                 original_quantity_(original_quantity), 
-                remaining_quantity_(original_quantity), 
+                remaining_quantity_(Volume{original_quantity.get()}), 
                 sequence_(sequence), 
                 timestamp_(timestamp), 
                 status_(OrderStatus::Active) 
@@ -71,11 +71,11 @@ namespace mercury {
 
             OrderID id() const noexcept { return id_; }
             Price price() const noexcept { return price_; }
-            Quantity remainingQuantity() const noexcept { return remaining_quantity_; }
+            Volume remainingQuantity() const noexcept { return remaining_quantity_; }
             Quantity originalQuantity() const noexcept { return original_quantity_; }
             SequenceNumber sequenceNumber() const noexcept { return sequence_; }
             EventTimestamp timestamp() const noexcept { return timestamp_; }
-            Quantity filledQuantity() const noexcept { return Quantity(original_quantity_.get() - remaining_quantity_.get()); }
+            std::uint64_t filledQuantity() const noexcept { return original_quantity_.get() - remaining_quantity_.get(); }
             OrderStatus status() const noexcept { return status_; }
             OrderType type() const noexcept { return type_; }
             TimeInForce timeInForce() const noexcept { return tif_; }
