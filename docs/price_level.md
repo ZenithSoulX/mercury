@@ -26,3 +26,10 @@ A PriceLevel is responsible for exactly four things:
 4. Providing efficient iteration
 
 Nothing else.
+
+## PriceLevel Invariants
+Every order :
+- has the same price
+- has the same side
+- is active
+total_volume is the sum of remainingVolume(order)
