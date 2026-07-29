@@ -3,7 +3,7 @@
 #include <algorithm>
 
 namespace mercury {
-
+    //TODO : Add FOK, IOC, Iceberg and other advanced order types/time_in_force.
 namespace {
     bool crosses(const Order& incoming, Price resting_price){
         if(incoming.type() == OrderType::Market){
