@@ -3,6 +3,7 @@
 #include <compare>
 #include <stdexcept>
 #include <cassert>
+#include <functional>
 
 namespace mercury {
     /** Strongly typed wrapper around primitive values.
@@ -26,7 +27,7 @@ namespace mercury {
 
         private : 
             static constexpr std::int64_t validate(std::int64_t v){
-                assert(v > 0 && "Price must be positive");
+                if (v<=0) throw std::invalid_argument("Price must be positive");
                 return v;
             }
             std::int64_t value;
@@ -39,14 +40,12 @@ namespace mercury {
 
         private : 
             static constexpr std::uint64_t validate(std::uint64_t v){
-                assert(v > 0 && "Quantity must be positive");
+                if (v<=0) throw std::invalid_argument("Quantity must be positive");
                 return v;
             }
             std::uint64_t value;
     };
 
-    // TODO(rahul):
-    // Provide std::hash specialization and operators += -=
     struct OrderIDTag {};
     struct SequenceNumberTag {};
     struct VolumeTag {};
@@ -56,3 +55,9 @@ namespace mercury {
     using SequenceNumber = StrongType<SequenceNumberTag, std::uint64_t>;
     using EventTimestamp = StrongType<EventTimestampTag, std::uint64_t>;
 }
+template <typename Tag, typename T>
+    struct std::hash<mercury::StrongType<Tag,T>> {
+        std::size_t operator()(const mercury::StrongType<Tag,T>& s) const noexcept {
+            return std::hash<T>{}(s.get());
+        }
+    };
