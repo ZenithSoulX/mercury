@@ -7,9 +7,10 @@
 namespace mercury {
 
     struct PriceLevelEntry {
-        PriceLevelEntry(Price price, std::unique_ptr<PriceLevel> level);
         Price price;
         std::unique_ptr<PriceLevel> level;
+        PriceLevelEntry(Price price, std::unique_ptr<PriceLevel> level):
+            price(price), level(std::move(level)) {}
     };
 
     /* Stores PriceLevels in ascending price order.
