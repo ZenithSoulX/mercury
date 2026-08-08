@@ -1,4 +1,4 @@
-#include "order_book.hpp"
+#include "domain/order_book.hpp"
 #include <cassert>
 #include <algorithm>
 
@@ -31,6 +31,9 @@ namespace {
             return false;
         }
         const OrderLocation& location = it->second.location;
+        //First cancel the order before removing it from the book. This ensures that the order's state is updated before it is removed from the book.
+        Order& order = *(*location.iterator);
+        order.cancel();
         assert(location.level != nullptr && "OrderLocation contains null PriceLevel");
         Side side = location.level->side();
         BookSide& book_side = (side == Side::Buy) ? bids_ :asks_;
