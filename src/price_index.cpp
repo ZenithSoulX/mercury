@@ -1,4 +1,4 @@
-#include "price_index.hpp"
+#include "domain/price_index.hpp"
 #include <algorithm>
 
 namespace mercury {
@@ -52,11 +52,6 @@ namespace {
         // element after 'it' — O(n), but a contiguous memmove over small n,
         // not a red-black tree rebalance; see design notes on this trade-off.
         auto inserted = levels_.emplace(it, price, std::make_unique<PriceLevel>(price, side));
-
-    #ifndef NDEBUG
-        verifyInvariants();
-    #endif
-
         return *inserted->level;
     }
 

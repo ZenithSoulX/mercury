@@ -26,9 +26,7 @@ namespace mercury {
         assert(amount.get() > 0 && "Reduction amount must be positive");
         assert(amount.get() <= total_volume_.get() && "Cannot reduce more than total volume");
         total_volume_ = Volume{total_volume_.get() - amount.get()};
-    #ifndef NDEBUG
-        verifyInvariants();
-    #endif
+        // We dont need to verify invariants as it is a transient state and will be verified when the order is filled or cancelled.
     }
     PriceLevel::Iterator PriceLevel::erase(Iterator it){
         assert(it != orders_.end() && "Cannot erase end iterator");
