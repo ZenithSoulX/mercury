@@ -31,6 +31,7 @@ namespace mercury {
             OrderStatus status_;
             void fill(const Quantity& quantity);
             void cancel();
+            void reduceQuantity(const Quantity& amount);
 
         public:
             Order() = delete;
