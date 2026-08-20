@@ -24,10 +24,6 @@ FetchContent_MakeAvailable(googletest)
 add_subdirectory(tests)
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
-# ------------------------------------------------------------------------------
-# Warnings
-# ------------------------------------------------------------------------------
-
 if(MSVC)
     add_compile_options(/W4)
 else()
@@ -38,9 +34,18 @@ else()
     )
 endif()
 
-# ------------------------------------------------------------------------------
-# Mercury Library
-# ------------------------------------------------------------------------------
+option(MERCURY_ENABLE_SANITIZERS "Enable sanitizers" ON)
+
+if(MERCURY_ENABLE_SANITIZERS AND NOT MSVC)
+    add_compile_options(
+        -fsanitize=address,undefined
+        -fno-omit-frame-pointer
+    )
+    add_link_options(
+        -fsanitize=address,undefined
+    )
+    
+endif()
 
 add_library(mercury
     src/order.cpp
@@ -48,16 +53,13 @@ add_library(mercury
     src/price_index.cpp
     src/book_side.cpp
     src/order_book.cpp
+    src/lobster_parser.cpp
 )
 
 target_include_directories(mercury
     PUBLIC
         ${PROJECT_SOURCE_DIR}/include
 )
-
-# ------------------------------------------------------------------------------
-# Experiments
-# ------------------------------------------------------------------------------
 
 add_executable(layout
     experiments/layout.cpp
@@ -67,3 +69,18 @@ target_link_libraries(layout
     PRIVATE
         mercury
 )
+
+add_executable(replay_demo
+    experiments/replay_demo.cpp
+)
+
+target_link_libraries(replay_demo
+    PRIVATE
+        mercury
+)
+
+add_executable(lobster_stats
+    experiments/lobster_stats.cpp)
+ target_link_libraries(lobster_stats
+    PRIVATE
+        mercury)
