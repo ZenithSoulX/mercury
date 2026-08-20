@@ -13,4 +13,9 @@ namespace mercury {
         assert(isActive() && "Cannot cancel an order that is not active");
         status_ = OrderStatus::Cancelled;
     }
+    void Order::reduceQuantity(const Quantity& amount){
+        assert(isActive() && "Cannot reduce quantity of inactive order");
+        assert(amount.get()<remaining_quantity_.get() && "Reduction must leave a positive remainder");
+        remaining_quantity_ = Volume(remaining_quantity_.get()-amount.get()); //status will remain unchanged since no trade occurred.
+    }
 }
