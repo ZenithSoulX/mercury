@@ -15,6 +15,7 @@ namespace mercury{
             // Any remaining quantity is inserted as a resting order.
             [[nodiscard]] std::vector<Trade> submitOrder(Order&);
             bool cancelOrder(OrderID);
+            [[nodiscard]] bool reduceOrder(OrderID, Quantity);
             OrderBook(const OrderBook&) = delete;
             OrderBook& operator=(const OrderBook&) = delete;
             OrderBook(OrderBook&&) = default;
