@@ -4,6 +4,9 @@
 *.o
 *.obj
 *.exe
+*.csv
+data/*
+!data/README.md
 cmake-build-*/
 CMakeCache.txt
 CMakeFiles/
