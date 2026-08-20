@@ -352,3 +352,129 @@ TEST_F(OrderBookTest, PartialFillPreservesPriceLevel)
     EXPECT_EQ(book.bestAsk()->price(), Price{100});
     EXPECT_EQ(book.orderCount(), 1u);
 }
+
+TEST_F(OrderBookTest, CancelPartiallyFilledOrder)
+{
+    auto sell = makeSell(
+        OrderID{1},
+        Price{100},
+        Quantity{10}
+    );
+
+    book.submitOrder(sell);
+
+    auto buy = makeBuy(
+        OrderID{2},
+        Price{100},
+        Quantity{4}
+    );
+
+    auto trades = book.submitOrder(buy);
+
+    ASSERT_EQ(trades.size(), 1u);
+    EXPECT_EQ(sell.remainingQuantity(),Volume{6});
+    EXPECT_EQ(sell.status(),OrderStatus::PartiallyFilled);
+    EXPECT_TRUE(book.contains(OrderID{1}));
+    EXPECT_TRUE(book.cancelOrder(OrderID{1}));
+    EXPECT_TRUE(sell.isCancelled());
+    EXPECT_FALSE(book.contains(OrderID{1}));
+    EXPECT_TRUE(book.empty());
+    EXPECT_EQ(book.orderCount(), 0u);
+    EXPECT_EQ(book.bestAsk(), nullptr);
+}
+
+TEST_F(OrderBookTest, CancelOneOrderAtSharedPriceLevel)
+{
+    auto buyA = makeBuy(
+        OrderID{1},
+        Price{100},
+        Quantity{10}
+    );
+
+    auto buyB = makeBuy(
+        OrderID{2},
+        Price{100},
+        Quantity{10}
+    );
+
+    book.submitOrder(buyA);
+    book.submitOrder(buyB);
+
+    ASSERT_EQ(book.orderCount(), 2u);
+    EXPECT_TRUE(book.contains(OrderID{1}));
+    EXPECT_TRUE(book.contains(OrderID{2}));
+    EXPECT_TRUE(book.cancelOrder(OrderID{2}));
+    EXPECT_TRUE(book.contains(OrderID{1}));
+    EXPECT_FALSE(book.contains(OrderID{2}));
+    EXPECT_TRUE(buyB.isCancelled());
+    EXPECT_EQ(book.orderCount(), 1u);
+    ASSERT_NE(book.bestBid(), nullptr);
+    EXPECT_EQ(book.bestBid()->price(), Price{100});
+}
+
+TEST_F(OrderBookTest, ExactMultiLevelExhaustion)
+{
+    auto sell1 = makeSell(
+        OrderID{1},
+        Price{100},
+        Quantity{5}
+    );
+
+    auto sell2 = makeSell(
+        OrderID{2},
+        Price{101},
+        Quantity{5}
+    );
+
+    auto sell3 = makeSell(
+        OrderID{3},
+        Price{102},
+        Quantity{5}
+    );
+
+    book.submitOrder(sell1);
+    book.submitOrder(sell2);
+    book.submitOrder(sell3);
+
+    auto buy = makeBuy(
+        OrderID{4},
+        Price{102},
+        Quantity{15}
+    );
+
+    auto trades = book.submitOrder(buy);
+
+    ASSERT_EQ(trades.size(), 3u);
+    EXPECT_EQ(trades[0].price, Price{100});
+    EXPECT_EQ(trades[1].price, Price{101});
+    EXPECT_EQ(trades[2].price, Price{102});
+    EXPECT_TRUE(buy.isFilled());
+    EXPECT_FALSE(book.contains(OrderID{1}));
+    EXPECT_FALSE(book.contains(OrderID{2}));
+    EXPECT_FALSE(book.contains(OrderID{3}));
+    EXPECT_TRUE(book.empty());
+    EXPECT_EQ(book.orderCount(), 0u);
+    EXPECT_EQ(book.bestAsk(), nullptr);
+}
+
+TEST_F(OrderBookTest, ReduceOrderQuantity)
+{
+    auto buy = makeBuy(
+        OrderID{1},
+        Price{100},
+        Quantity{10}
+    );
+
+    book.submitOrder(buy);
+
+    ASSERT_EQ(book.orderCount(), 1u);
+    EXPECT_TRUE(book.contains(OrderID{1}));
+    EXPECT_EQ(buy.remainingQuantity(), Volume{10});
+
+    bool reduced = book.reduceOrder(OrderID{1}, Quantity{4});
+
+    EXPECT_TRUE(reduced);
+    EXPECT_EQ(buy.remainingQuantity(), Volume{6});
+    EXPECT_TRUE(book.contains(OrderID{1}));
+    EXPECT_EQ(book.orderCount(), 1u);
+}
