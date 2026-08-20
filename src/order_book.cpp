@@ -70,5 +70,19 @@ namespace {
             order_lookup_.emplace(incoming.id(), OrderEntry{location});
         }
         return trades;
-    }    
+    }
+    bool OrderBook::reduceOrder(OrderID id, Quantity amount){
+        auto it = order_lookup_.find(id);
+        if(it == order_lookup_.end()){
+            return false; //no-op - mirrors cancelOrder's missing-id convention.
+        }
+        Order* order = *(it->second.location.iterator);
+        if(amount.get()>=order->remaining_quantity_.get()){
+            return cancelOrder(id); //if reduction is greater than current amount : cancel the order.
+        }
+        assert(order!=nullptr && "OrderLocation points to null order");
+        order->reduceQuantity(amount);
+        it->second.location.level->reduceVolume(amount);
+        return true;
+    }
 }
