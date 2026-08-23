@@ -54,6 +54,7 @@ add_library(mercury
     src/book_side.cpp
     src/order_book.cpp
     src/lobster_parser.cpp
+    src/replay_engine.cpp
 )
 
 target_include_directories(mercury
@@ -84,3 +85,7 @@ add_executable(lobster_stats
  target_link_libraries(lobster_stats
     PRIVATE
         mercury)
+add_executable(replay_smoke_test tools/replay_smoke_test.cpp)
+target_link_libraries(replay_smoke_test PRIVATE mercury)
+target_compile_options(replay_smoke_test PRIVATE -fsanitize=address,undefined -fno-omit-frame-pointer)
+target_link_options(replay_smoke_test PRIVATE -fsanitize=address,undefined)
