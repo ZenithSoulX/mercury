@@ -478,3 +478,65 @@ TEST_F(OrderBookTest, ReduceOrderQuantity)
     EXPECT_TRUE(book.contains(OrderID{1}));
     EXPECT_EQ(book.orderCount(), 1u);
 }
+
+TEST_F(OrderBookTest, ReduceOrderToZero1)
+{
+    auto buy = makeBuy(
+        OrderID{1},
+        Price{100},
+        Quantity{100}
+    );
+
+    book.submitOrder(buy);
+
+    EXPECT_TRUE(
+        book.reduceOrder(
+            OrderID{1},
+            Quantity{40}
+        )
+    );
+
+    EXPECT_TRUE(book.contains(OrderID{1}));
+
+    EXPECT_EQ(
+        buy.remainingQuantity(),
+        Volume{60}
+    );
+
+    EXPECT_EQ(book.orderCount(), 1);
+
+    ASSERT_NE(book.bestBid(), nullptr);
+
+    EXPECT_EQ(
+        book.bestBid()->price(),
+        Price{100}
+    );
+}
+
+TEST_F(OrderBookTest, ReduceOrderToZeroRemovesOrder)
+{
+    auto buy = makeBuy(
+        OrderID{1},
+        Price{100},
+        Quantity{100}
+    );
+
+    book.submitOrder(buy);
+
+    EXPECT_TRUE(
+        book.reduceOrder(
+            OrderID{1},
+            Quantity{100}
+        )
+    );
+
+    EXPECT_FALSE(
+        book.contains(OrderID{1})
+    );
+
+    EXPECT_TRUE(book.empty());
+
+    EXPECT_EQ(book.orderCount(), 0);
+
+    EXPECT_EQ(book.bestBid(), nullptr);
+}
