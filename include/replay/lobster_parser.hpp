@@ -8,7 +8,7 @@ namespace mercury {
     class LobsterParser {
         public :
             explicit LobsterParser(const std::string& path);
-            [[nodiscard]] bool good() const;
+            [[nodiscard]] bool good() const noexcept;
             [[nodiscard]] std::optional<LobsterMessage> next();
         
         private :

@@ -1,5 +1,4 @@
 #pragma once
-#include "core/types.hpp"
 
 namespace mercury{
     enum class LobsterEventType {
@@ -11,7 +10,9 @@ namespace mercury{
         TradingHalt = 7
     };
     struct LobsterMessage {
-        double timestamp;
+        //double timestamp;  double has around 15-17 significant digits which has a risk of off-by-a-few-nanoseconds errors.
+        // instead we can work with int and decimal part differently.
+        std::uint64_t timestamp;
         LobsterEventType event_type;
         std::uint64_t order_id;
         std::uint64_t size;
