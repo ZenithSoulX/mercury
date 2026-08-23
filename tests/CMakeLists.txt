@@ -1,6 +1,8 @@
 add_executable(
     order_book_tests
     order_book_tests.cpp
+    lobster_parser_tests.cpp
+    replay_tests.cpp
 )
 
 target_link_libraries(
