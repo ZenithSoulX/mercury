@@ -55,6 +55,8 @@ add_library(mercury
     src/order_book.cpp
     src/lobster_parser.cpp
     src/replay_engine.cpp
+    src/book_validator.cpp
+    src/lobster_orderbook_parser.cpp
 )
 
 target_include_directories(mercury
@@ -89,3 +91,12 @@ add_executable(replay_smoke_test tools/replay_smoke_test.cpp)
 target_link_libraries(replay_smoke_test PRIVATE mercury)
 target_compile_options(replay_smoke_test PRIVATE -fsanitize=address,undefined -fno-omit-frame-pointer)
 target_link_options(replay_smoke_test PRIVATE -fsanitize=address,undefined)
+
+add_executable(validate_replay tools/validate_replay.cpp)
+target_link_libraries(validate_replay PRIVATE mercury)
+
+target_compile_options(validate_replay PRIVATE -fsanitize=address,undefined -fno-omit-frame-pointer)
+target_link_options(validate_replay PRIVATE -fsanitize=address,undefined)
+
+add_executable(benchmark_replay experiments/benchmark_replay.cpp)
+target_link_libraries(benchmark_replay PRIVATE mercury)
