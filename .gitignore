@@ -6,6 +6,7 @@
 *.exe
 *.csv
 data/*
+/build_release/
 !data/README.md
 cmake-build-*/
 CMakeCache.txt
