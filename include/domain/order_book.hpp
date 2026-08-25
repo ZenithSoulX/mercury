@@ -27,12 +27,14 @@ namespace mercury{
             [[nodiscard]] bool contains(OrderID) const noexcept;
             [[nodiscard]] bool empty() const noexcept;
             [[nodiscard]] std::size_t orderCount() const noexcept;
+            [[nodiscard]] std::size_t peakActiveOrders() const noexcept ;
         private :
             struct OrderEntry {
                 OrderLocation location;
             };
             BookSide bids_;
             BookSide asks_;
+            std::size_t peak_active_orders_ = 0; // Tracks the peak number of active orders in the book at any point in time.
             // Maps every active resting order to its current location in the book.
             // Must remain synchronized with both BookSides.
             std::unordered_map<OrderID, OrderEntry> order_lookup_;
