@@ -23,7 +23,10 @@ namespace {
         return order_lookup_.empty();
     }
     std::size_t OrderBook::orderCount() const noexcept {
-        return order_lookup_.size();
+        return order_lookup_.size(); // All orders in order_lookup_ are active resting orders.
+    }
+    std::size_t OrderBook::peakActiveOrders() const noexcept {
+        return peak_active_orders_;
     }
     bool OrderBook::cancelOrder(OrderID id){
         auto it = order_lookup_.find(id);
@@ -68,6 +71,7 @@ namespace {
         if(incoming.isActive() && (incoming.type() == OrderType::Limit || incoming.type() == OrderType::Iceberg)){
             OrderLocation location = own_side.addOrder(incoming);
             order_lookup_.emplace(incoming.id(), OrderEntry{location});
+            peak_active_orders_ = std::max(peak_active_orders_, order_lookup_.size());
         }
         return trades;
     }
