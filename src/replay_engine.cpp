@@ -1,6 +1,7 @@
 #include "replay/replay_engine.hpp"
 #include <cassert>
 #include <iostream>
+#include <chrono>
 
 namespace mercury {
     ReplayEngine::ReplayEngine(const std::string& path, OrderBook& book)
@@ -37,6 +38,15 @@ namespace mercury {
     std::size_t ReplayEngine::untrackedVisibleExecutionCount() const noexcept {
         return untracked_visible_execution_count_;
     }
+    const std::vector<std::int64_t>& ReplayEngine::submitLatencies() const noexcept {
+        return submit_latencies_ns_;
+    }
+    const std::vector<std::int64_t>& ReplayEngine::cancelLatencies() const noexcept {
+        return cancel_latencies_ns_;
+    }
+    const std::vector<std::int64_t>& ReplayEngine::reduceLatencies() const noexcept {
+        return reduce_latencies_ns_;
+    }
     void ReplayEngine::dispatch(const LobsterMessage& msg){
         switch(msg.event_type){
             case LobsterEventType::Submission : {
@@ -51,36 +61,40 @@ namespace mercury {
                     SequenceNumber{next_sequence_++},
                     EventTimestamp{msg.timestamp}
                 );
+                auto t0 = std::chrono::steady_clock::now();
                 auto trades = book_.submitOrder(order_storage_.back());
+                auto t1 = std::chrono::steady_clock::now();
+                submit_latencies_ns_.push_back(std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count());
                 trade_count_ += trades.size();
                 break;
             }
             case LobsterEventType::PartialCancellation : {
+                auto t0 = std::chrono::steady_clock::now();
                 bool found = book_.reduceOrder(OrderID{msg.order_id}, Quantity{msg.size});
+                auto t1 = std::chrono::steady_clock::now();
+                reduce_latencies_ns_.push_back(std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count());
                 if(!found){
+                    //If the order is not found, it might be pre-market activity.
+                    //This is expected behavior for L1 dataset. 
                     untracked_partial_cancel_count_++;
                 }
                 break;
             }
             case LobsterEventType::Deletion : {
-                if(!book_.cancelOrder(OrderID{msg.order_id})){
+                bool flag = book_.cancelOrder(OrderID{msg.order_id});
+                auto t0 = std::chrono::steady_clock::now();
+                book_.cancelOrder(OrderID{msg.order_id});
+                auto t1 = std::chrono::steady_clock::now();
+                cancel_latencies_ns_.push_back(std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count());
+                if(!flag){
                     //If the order is not found, it might be pre-market activity.
                     //This is expected behavior for L1 dataset. 
                     untracked_deletion_count_++;
-                    if(untracked_deletion_count_<=20){
-                        std::cout<<"Untracked type 3 "<<msg.order_id<<" qty = "<<msg.size<<" price = "<<msg.price<<'\n';
-                    }
                 }
                 break;
             }
             case LobsterEventType::VisibleExecution : {
-                bool found = book_.reduceOrder(OrderID{msg.order_id}, Quantity{msg.size});
-                if(!found){
-                    untracked_visible_execution_count_++;
-                    if(untracked_visible_execution_count_<=20){
-                        std::cout<<"Untracked type 4 "<<msg.order_id<<" qty = "<<msg.size<<" price = "<<msg.price<<'\n';
-                    }
-                }
+                //Checkpoint only - no action.
                 break;
             }
             case LobsterEventType::HiddenExecution : {
