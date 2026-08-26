@@ -19,10 +19,31 @@ FetchContent_Declare(
     GIT_REPOSITORY https://github.com/google/googletest.git
     GIT_TAG v1.17.0
 )
+FetchContent_Declare(
+    benchmark
+    GIT_REPOSITORY https://github.com/google/benchmark.git
+    GIT_TAG v1.9.1
+)
 
 FetchContent_MakeAvailable(googletest)
+FetchContent_MakeAvailable(benchmark)
+
+add_library(mercury
+    src/order.cpp
+    src/price_level.cpp
+    src/price_index.cpp
+    src/book_side.cpp
+    src/order_book.cpp
+    src/lobster_parser.cpp
+    src/replay_engine.cpp
+    src/book_validator.cpp
+    src/lobster_orderbook_parser.cpp
+)
+
 add_subdirectory(tests)
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "" FORCE)
+
 
 if(MSVC)
     add_compile_options(/W4)
@@ -47,17 +68,7 @@ if(MERCURY_ENABLE_SANITIZERS AND NOT MSVC)
     
 endif()
 
-add_library(mercury
-    src/order.cpp
-    src/price_level.cpp
-    src/price_index.cpp
-    src/book_side.cpp
-    src/order_book.cpp
-    src/lobster_parser.cpp
-    src/replay_engine.cpp
-    src/book_validator.cpp
-    src/lobster_orderbook_parser.cpp
-)
+
 
 target_include_directories(mercury
     PUBLIC
@@ -89,14 +100,19 @@ add_executable(lobster_stats
         mercury)
 add_executable(replay_smoke_test tools/replay_smoke_test.cpp)
 target_link_libraries(replay_smoke_test PRIVATE mercury)
-target_compile_options(replay_smoke_test PRIVATE -fsanitize=address,undefined -fno-omit-frame-pointer)
-target_link_options(replay_smoke_test PRIVATE -fsanitize=address,undefined)
 
 add_executable(validate_replay tools/validate_replay.cpp)
 target_link_libraries(validate_replay PRIVATE mercury)
 
-target_compile_options(validate_replay PRIVATE -fsanitize=address,undefined -fno-omit-frame-pointer)
-target_link_options(validate_replay PRIVATE -fsanitize=address,undefined)
-
 add_executable(benchmark_replay experiments/benchmark_replay.cpp)
 target_link_libraries(benchmark_replay PRIVATE mercury)
+
+add_executable(order_book_benchmarks benchmarks/benchmarking.cpp)
+target_link_libraries(order_book_benchmarks 
+    PRIVATE 
+        mercury 
+        benchmark::benchmark)
+
+add_executable(latency_report tools/latency_report.cpp tools/latency_stats.cpp)
+target_link_libraries(latency_report PRIVATE mercury)
+target_compile_options(latency_report PRIVATE -O3 -DNDEBUG)
