@@ -29,27 +29,27 @@ int main(int argc, char** argv) {
     mercury::BookValidator validator(engine, book, orderbook_parser);
     auto mismatch = validator.run();
     std::cout
-        << "Hidden executions: "
+        << "Hidden executions : "
         << engine.hiddenExecutionCount()
         << '\n';
 
     std::cout
-        << "Trading halts: "
+        << "Trading halts : "
         << engine.haltCount()
         << '\n';
 
     std::cout
-        << "Untracked Type 2 (Partial Cancel): "
+        << "Untracked Type 2 (Partial Cancel) : "
         << engine.untrackedPartialCancelCount()
         << '\n';
 
     std::cout
-        << "Untracked Type 3 (Deletion): "
+        << "Untracked Type 3 (Deletion) : "
         << engine.untrackedDeletionCount()
         << '\n';
 
     std::cout
-        << "Untracked Type 4 (Visible Execution): "
+        << "Untracked Type 4 (Visible Execution) : "
         << engine.untrackedVisibleExecutionCount()
         << '\n';
 
@@ -58,7 +58,6 @@ int main(int argc, char** argv) {
         std::cout << mismatch->desc << "\n";
         return 1;
     }
-    
-    std::cout << "VALIDATION PASSED — every row matched.\n";
+    std::cout << "VALIDATION PASSED and every row matched.\n";
     return 0;
 }

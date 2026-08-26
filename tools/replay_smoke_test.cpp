@@ -20,7 +20,6 @@ int main(int argc, char** argv) {
     auto start = std::chrono::steady_clock::now();
     std::size_t processed = engine.runAll();
     auto end = std::chrono::steady_clock::now();
-
     auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
     std::cout << "Processed: " << processed << " messages\n";
@@ -29,12 +28,8 @@ int main(int argc, char** argv) {
     std::cout << "Hidden executions skipped: " << engine.hiddenExecutionCount() << "\n";
     std::cout << "Halts skipped: " << engine.haltCount() << "\n";
 
-    if (book.bestBid()) {
-        std::cout << "Final best bid: " << book.bestBid()->price().get() << "\n";
-    }
-    if (book.bestAsk()) {
-        std::cout << "Final best ask: " << book.bestAsk()->price().get() << "\n";
-    }
-
+    if (book.bestBid())std::cout << "Final best bid: " << book.bestBid()->price().get() << "\n";
+    if (book.bestAsk())std::cout << "Final best ask: " << book.bestAsk()->price().get() << "\n";
+    
     return 0;
 }
