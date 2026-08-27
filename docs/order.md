@@ -79,7 +79,7 @@ Every newly constructed Order begins in the **Active** state.
 
 The object itself is responsible for maintaining valid status transitions.
 
-## Lifecycle
+## Lifecycle of Order
 
 ```
            +---------+

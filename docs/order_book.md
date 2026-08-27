@@ -81,6 +81,28 @@ As per Mercury's overall design, `Exchange` (not yet built) is intended to own `
 | Submit (matches k resting orders) | O(k) + level lookups | Each matched level lookup/removal is O(1) amortized |
 | Cancel | O(1) amortized | Hash lookup + instrusive unlink |
 | Reduce | O(1) | Direct field update, no reposition |
-| Best bid/ask | O(1) | Always - sorted-vector PriceIndex keeps top-of-book at front()/back() with no rescan-on-empty case |
+| Best bid/ask | O(1) | Always - sorted-vector *PriceIndex* keeps top-of-book at front()/back() with no rescan-on-empty case |
 
+## Validation Against Real Data 
+`OrderBook`, driven by `ReplayEngine`, has been validated against real NASDAQ TotalView-ITCH data (LOBSTER sample, AAPL 2012 L1 and 2013 L5 depth). 
 
+**Findings** :
+- Core matching, cancellation, and reduction logic is correct and produces plausible, stable book state across a full trading day (118,497 events in L1 and 301,587 events in L5). 
+- A measurable fraction of message-file events (partial cancellations and deletions) reference orders that predate the sample window which includes resting liquidity present at market open with no corresponding `Submission` event in the file. These are correctly treated as no-ops by `cancelOrder`/`reduceOrder` (since the referenced `OrderID` was never seen), and are counted, not silently ignored — see `ReplayEngine.md` for exact figures and reasoning.
+
+## Design Decisions 
+
+### Matching lives in OrderBook, not a seperate MatchingEngine
+For a single-symbol book, a separate `MatchingEngine` class would either duplicate `OrderBook`'s knowledge of both `BookSide`s or be a trivial pass-through with no logic of its own. Thus, `OrderBook` performs its own matching directly.
+
+### No BookSide iteration exposed
+`OrderBook` does not expose raw iteration over price levels. Nothing in the current matching loop needs it since matching only ever calls `best()` repeatedly, and `removeOrder`/`erase` already keep top-of-book correct after every mutation. 
+Multi-level access should be added as a purpose-built method returning copied data when actually needed, not by exposing internal iterators.
+
+## Future Extensions 
+- Full FOK/IOC/Day semantics
+- Iceberg replenishment
+- Multi-symbol Exchange layer, with OrderBook per symbol and a shared Order memory pool.
+- Self-trade prevention (requires a trader/owner identifier which is not currently modeled on `Order`).
+
+`Last updated` : 27th Aug 2026 
