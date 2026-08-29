@@ -1,35 +1,37 @@
-## Design Rationale
+# PriceLevel
 
-### Why std::list<Order*>?
+## Purpose
+`PriceLevel` represents all active resting orders at a single price, on a single side. It maintains strict FIFO ordering among those orders (price-time priority) and tracks their aggregate resting volume. 
 
-Alternatives considered:
+## Responsibilites
+It is responsible for :
+- Holding resting orders at one price as time priority.
+- O(1) insertion, removal, and front-of-queue access.
+-  Maintaining an aggregate `total_volume_` in sync with its orders.
 
-- std::vector<Order*>
-- std::deque<Order*>
-- Intrusive list
+It is **not** responsible for :
+- Matching logic, or knowing which side is "best".
+- Owning `Order` memory (only holds non-owning Order*).
+- Enforcing price-time priority across levels (that's `PriceIndex`/`BookSide` job).
 
-Decision:
-std::list<Order*> was chosen because:
-- O(1) FIFO removal
-- O(1) cancellation with cached iterators
-- Stable iterators
-- Container hidden behind the PriceLevel interface, allowing future replacement without API changes
+## Invariants
+- Every order has the level's exact `price_` and `side_`.
+- `total_volume_` == sum of every order's `remainingVolume()`.
+- orders_.empty() == (total_volume_==0).
+All of the invariants are verified via a debug-only `verifyInvariants()`, called after every mutation.
 
-Future optimization:
-Replace std::list with an intrusive linked list if profiling shows allocator or cache overhead is significant.
+## Design Decisions
+In the current model `std::list<Order*>` is being implemented. An intrusive design avoids a per-node allocation and was the original target design, but std::list was chosen first in order to first benchmark this version, then convert to instrusive and re-benchmark. Thus, any latency difference would be backed by real measurement rather than assumed.
 
-## What PriceLevel Owns?
-A PriceLevel is responsible for exactly four things:
-1. Maintaining FIFO order
-2. Maintaining aggregate quantity
-3. Ensuring every order belongs to this price level
-4. Providing efficient iteration
+`total_volume_` is `Volume` and not `Quantity`. `Quantity` must always be strictly positive but `Volume` has not such restriction. This distinction was important because if `Quantity` reaches 0 it will crash the code and last order won't be able to leave the level. Thus Mercury has two seperates numeric types instead of one. 
 
-Nothing else.
+`addOrder()` returns an iterator. Callers (`BookSide`,`OrderBook`) needs this to erase a specific order later in O(1). Without it, cancellation would require an O(n) scan.
 
-## PriceLevel Invariants
-Every order :
-- has the same price
-- has the same side
-- is active
-total_volume is the sum of remainingVolume(order)
+## Complexity
+
+| Operation | Complexity |
+| --------- | ---------- |
+| Add/erase/front | O(1) |
+| Reduce volume | O(1) |
+
+`Last Updated ` : 29th Aug 2026
