@@ -14,6 +14,15 @@ It is **not** responsible for :
 - Owning `Order` memory (only holds non-owning Order*).
 - Enforcing price-time priority across levels (that's `PriceIndex`/`BookSide` job).
 
+## Data Model 
+
+class PriceLevel {
+    Price price_;
+    Side side_;
+    std::list<Order*> orders_;
+    Volume total_volume_;
+};
+
 ## Invariants
 - Every order has the level's exact `price_` and `side_`.
 - `total_volume_` == sum of every order's `remainingVolume()`.
