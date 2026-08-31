@@ -12,18 +12,17 @@ namespace mercury {
         return side_ == Side::Buy ? std::prev(index_.end())->level.get() : index_.begin()->level.get();
     }
 
-    OrderLocation BookSide::addOrder(Order& order) {
+    void BookSide::addOrder(Order& order) {
         assert(order.side() == side_ && "Order side does not match this BookSide");
         PriceLevel& level = index_.getOrCreate(order.price(), side_);
-        auto it = level.addOrder(order);
-        return OrderLocation{&level, it};
+        level.addOrder(order);
     }
 
-    void BookSide::removeOrder(const OrderLocation& location) {
-        PriceLevel* level = location.level;
+    void BookSide::removeOrder(Order& order) {
+        PriceLevel* level = order.level();
         assert(level != nullptr && "OderLocation contains null PriceLevel");
         assert(level->side() == side_ && "removeOrder called with mismatched Side for PriceLevel");
-        level->erase(location.iterator);
+        level->erase(order);
         if (level->empty()) {
             index_.erase(level->price()); // keeps PriceIndex's no-empty-levels invariant true
         }

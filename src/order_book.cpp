@@ -33,14 +33,15 @@ namespace {
         if(it == order_lookup_.end()){
             return false;
         }
-        const OrderLocation& location = it->second.location;
         //First cancel the order before removing it from the book. This ensures that the order's state is updated before it is removed from the book.
-        Order& order = *(*location.iterator);
-        order.cancel();
-        assert(location.level != nullptr && "OrderLocation contains null PriceLevel");
-        Side side = location.level->side();
-        BookSide& book_side = (side == Side::Buy) ? bids_ :asks_;
-        book_side.removeOrder(location);
+        Order* order = it->second;
+        assert(order != nullptr && "OrderLocation points to null order");
+        PriceLevel* level = order->level_;
+        assert(level != nullptr && "OrderLocation points to null PriceLevel");
+        Side side = order->side();
+        BookSide& bookside = (side == Side::Buy) ? bids_ : asks_;
+        order->cancel();
+        bookside.removeOrder(*order);
         order_lookup_.erase(it);
         return true;
     }
@@ -64,13 +65,13 @@ namespace {
             if(resting_order.isFilled()){
                 auto it = order_lookup_.find(resting_order.id());
                 assert(it != order_lookup_.end() && "Resting order matched but missing from order_lookup_");
-                opposing_side.removeOrder(it->second.location);
+                opposing_side.removeOrder(*it->second);
                 order_lookup_.erase(it);
             }
         }
         if(incoming.isActive() && (incoming.type() == OrderType::Limit || incoming.type() == OrderType::Iceberg)){
-            OrderLocation location = own_side.addOrder(incoming);
-            order_lookup_.emplace(incoming.id(), OrderEntry{location});
+            own_side.addOrder(incoming);
+            order_lookup_.emplace(incoming.id(), &incoming);
             peak_active_orders_ = std::max(peak_active_orders_, order_lookup_.size());
         }
         return trades;
@@ -80,13 +81,13 @@ namespace {
         if(it == order_lookup_.end()){
             return false; //no-op - mirrors cancelOrder's missing-id convention.
         }
-        Order* order = *(it->second.location.iterator);
+        Order* order = it->second;
         if(amount.get()>=order->remaining_quantity_.get()){
             return cancelOrder(id); //if reduction is greater than current amount : cancel the order.
         }
         assert(order!=nullptr && "OrderLocation points to null order");
         order->reduceQuantity(amount);
-        it->second.location.level->reduceVolume(amount);
+        order->level()->reduceVolume(amount);
         return true;
     }
 }
