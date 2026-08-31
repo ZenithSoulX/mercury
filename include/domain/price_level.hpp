@@ -1,5 +1,4 @@
 #pragma once
-#include <list>
 #include "order.hpp"
 
 namespace mercury{
@@ -17,9 +16,7 @@ namespace mercury{
 
     class PriceLevel {
         public:
-            using Iterator = std::list<Order*>::iterator;
-            using ConstIterator = std::list<Order*>::const_iterator;
-            using OrderList = std::list<Order*>;
+
             explicit PriceLevel(Price price, Side side);
 
             PriceLevel() = delete;
@@ -28,10 +25,10 @@ namespace mercury{
             PriceLevel(PriceLevel&&) = delete;
             PriceLevel& operator=(PriceLevel&&) = delete;
 
-            PriceLevel::Iterator addOrder(Order& order);
+            void addOrder(Order& order);
             void removeFront();
             void reduceVolume(Quantity amount);
-            Iterator erase(Iterator it);
+            void erase(Order& order);
             [[nodiscard]] Order& front();
             [[nodiscard]] const Order& front() const;
             [[nodiscard]] bool empty() const noexcept;
@@ -40,18 +37,13 @@ namespace mercury{
             Side side() const noexcept;
             [[nodiscard]] Volume totalVolume() const noexcept;
 
-            Iterator begin() noexcept;
-            Iterator end() noexcept;
-            ConstIterator begin() const noexcept;
-            ConstIterator end() const noexcept;
-            ConstIterator cbegin() const noexcept;
-            ConstIterator cend() const noexcept;
-
     private:
         Price price_;
         Side side_;
-        OrderList orders_;
         Volume total_volume_;
+        Order* head_ = nullptr;
+        Order* tail_ = nullptr;
+        std::size_t order_count_ =0;
     #ifndef NDEBUG
         void verifyInvariants() const;
     #endif
