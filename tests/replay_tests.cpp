@@ -5,7 +5,7 @@ using namespace mercury;
 
 TEST(ReplayEngineTest, MiniFileProducesExpectedFinalBookState) {
     OrderBook book;
-    ReplayEngine engine("../../data/messageL1.csv", book);
+    ReplayEngine engine("../../tests/fixtures/mini_message.csv", book);
 
     std::size_t processed = engine.runAll();
     EXPECT_EQ(processed, 9u);

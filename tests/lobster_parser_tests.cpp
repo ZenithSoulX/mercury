@@ -5,7 +5,7 @@
 using namespace mercury;
 
 namespace {
-constexpr const char* kMiniMessageFile = "../../data/messageL1.csv";
+constexpr const char* kMiniMessageFile = "../../tests/fixtures/mini_message.csv";
 }
 
 TEST(LobsterParserTest, OpensValidFileSuccessfully) {

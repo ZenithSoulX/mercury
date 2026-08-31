@@ -52,6 +52,7 @@ TEST_F(OrderBookTest, BuyLimitOrderRestsOnEmptyBook)
         Price{100},
         Quantity{10}
     );
+    std::cout << sizeof(Order) << '\n';
     auto trades = book.submitOrder(buy);
     EXPECT_TRUE(trades.empty());
     EXPECT_FALSE(book.empty());
