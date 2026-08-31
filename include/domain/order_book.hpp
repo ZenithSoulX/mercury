@@ -10,9 +10,6 @@ namespace mercury{
     class OrderBook {
         public :
             OrderBook() noexcept : bids_(Side::Buy), asks_(Side::Sell) {}
-            // Processes an incoming order according to price-time priority.
-            // Executes against the opposing side while the order crosses.
-            // Any remaining quantity is inserted as a resting order.
             [[nodiscard]] std::vector<Trade> submitOrder(Order&);
             bool cancelOrder(OrderID);
             [[nodiscard]] bool reduceOrder(OrderID, Quantity);
@@ -29,14 +26,11 @@ namespace mercury{
             [[nodiscard]] std::size_t orderCount() const noexcept;
             [[nodiscard]] std::size_t peakActiveOrders() const noexcept ;
         private :
-            struct OrderEntry {
-                OrderLocation location;
-            };
             BookSide bids_;
             BookSide asks_;
             std::size_t peak_active_orders_ = 0; // Tracks the peak number of active orders in the book at any point in time.
             // Maps every active resting order to its current location in the book.
             // Must remain synchronized with both BookSides.
-            std::unordered_map<OrderID, OrderEntry> order_lookup_;
+            std::unordered_map<OrderID, Order*> order_lookup_;
     };
 }

@@ -14,11 +14,13 @@ namespace mercury {
      * Only execution progress (remaining quantity) and lifecycle state
      * may change during the lifetime of an Order.
      */
+    class PriceLevel;
     class Order {
         private:
             // TODO : Decide which component (MatchingEngine or OrderBook) is allowed to mutate order state.
             // Resolved: only OrderBook may mutate order lifecycle state.
             friend class OrderBook;  
+            friend class PriceLevel;
             const OrderID id_;
             const Side side_;
             const OrderType type_;
@@ -32,6 +34,9 @@ namespace mercury {
             void fill(const Quantity& quantity);
             void cancel();
             void reduceQuantity(const Quantity& amount);
+            Order* prev_ = nullptr;
+            Order* next_ = nullptr;
+            PriceLevel* level_ = nullptr;
 
         public:
             Order() = delete;
@@ -62,9 +67,7 @@ namespace mercury {
                     assert(price_.get() > 0 && "Order price must be positive");
                 }
             }
-
-            // Orders have stable identity and are owned by the exchange.
-            // They cannot be copied or moved after construction.
+            // Moving or copying an Order is not allowed.
             Order(const Order&) = delete;
             Order(Order&&) = delete;
             Order& operator=(const Order&) = delete;
@@ -91,6 +94,9 @@ namespace mercury {
             bool isCancelled() const noexcept {
                 return status_ == OrderStatus::Cancelled;
             }
+            Order* prev() const noexcept {return prev_;}
+            Order* next() const noexcept {return next_;}
+            PriceLevel* level() const noexcept {return level_;}
             
     };
 }
