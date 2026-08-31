@@ -81,9 +81,8 @@ namespace mercury {
                 break;
             }
             case LobsterEventType::Deletion : {
-                bool flag = book_.cancelOrder(OrderID{msg.order_id});
                 auto t0 = std::chrono::steady_clock::now();
-                book_.cancelOrder(OrderID{msg.order_id});
+                bool flag = book_.cancelOrder(OrderID{msg.order_id});
                 auto t1 = std::chrono::steady_clock::now();
                 cancel_latencies_ns_.push_back(std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count());
                 if(!flag){
