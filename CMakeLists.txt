@@ -107,12 +107,6 @@ target_link_libraries(validate_replay PRIVATE mercury)
 add_executable(benchmark_replay experiments/benchmark_replay.cpp)
 target_link_libraries(benchmark_replay PRIVATE mercury)
 
-add_executable(order_book_benchmarks benchmarks/benchmarking.cpp)
-target_link_libraries(order_book_benchmarks 
-    PRIVATE 
-        mercury 
-        benchmark::benchmark)
-
 add_executable(latency_report tools/latency_report.cpp tools/latency_stats.cpp)
 target_link_libraries(latency_report PRIVATE mercury)
 target_compile_options(latency_report PRIVATE -O3 -DNDEBUG)
