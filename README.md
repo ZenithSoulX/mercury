@@ -94,6 +94,26 @@ Order
 - mutable execution state
 ```
 
+## Optimization Case Study : Intrusive Price Levels
+
+Early versions of Mercury stored resting orders inside each `PriceLevel` using std::list<Order*>. While functionally correct, this design required a separate heap allocation for every list node and introduced additional pointer indirection during matching and cancellation.
+
+To improve cache locality and eliminate per-node allocation overhead, the implementation was replaced with an intrusive doubly linked structure, where the linkage pointers are stored directly inside each `Order`.
+
+### Measured Impact (Release Build)
+Benchmarks were run on the same Benchmark Enviroment before and after the change.
+
+| Metric | std::list | Intrusive List | Improvement |
+| ------ | -------- | ---------- | --------- |
+| Submit (L1 p50) | 125 ns | 83 ns | 33.6% faster |
+| Submit (L5 p50) | 125 ns | 43 ns | 66.4% faster |
+| Cancel (L1 p50) | 83 ns | 42 ns | 49.4% faster |
+| Cancel (L5 p50) | 83 ns | 42 ns | 49.4% faster |
+| Submit (L1 p99) | 1084 ns | 584 ns | 46.1% faster |
+| Submit (L5 p99) | 1042 ns | 375 ns | 64.0% faster |
+
+This optimization preserved O(1) order removal while significantly reducing latency and memory-management overhead.
+
 ## Current Status
 
 Implemented:
