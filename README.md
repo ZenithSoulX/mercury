@@ -1,12 +1,12 @@
 # Mercury
 
-**A price-time-priority limit order book matching engine, validated against real NASDAQ data.**
+**A price-time-priority limit order book matching engine built in C++20 and benchmarked on real NASDAQ order flow.**
 
-Mercury is a price-time-priority limit order book and matching engine built in C++20 and validated against real NASDAQ TotalView-ITCH order flow (via LOBSTER sample dataset). 
+Mercury is a price-time-priority limit order book and matching engine built in C++20. It can replay historical NASDAQ TotalView-ITCH order flow distributed through the LOBSTER dataset, enabling correctness testing and latency measurement on real market activity rather than synthetic workloads.
 
-Rather than evaluating correctness only through synthetic test cases, Mercury replays historical market events and compares its reconstructed book state against LOBSTER's independently-generated ground truth. The project emphasizes low-latency data structure, explicit memory ownership, strong type safety, and measurable performance. 
+Rather than evaluating correctness only through synthetic test cases, Mercury replays historical market events from the LOBSTER dataset and provides tooling for comparing reconstructed book states against LOBSTER reference snapshots. The project emphasizes low-latency data structures, explicit memory ownership, strong type safety, and measurable performance.
 
-[Architecture]
+![Architecture](docs/images/architecture.png)
 
 ## Performance Snapshot (Apple Silicon)
 
@@ -14,17 +14,30 @@ Rather than evaluating correctness only through synthetic test cases, Mercury re
 
 | Operation | p50 | p90 | p99 |
 |-----------|-----|-----|-----|
-| Submit | 500 ns | 1.58 µs | 7.33 µs |
-| Cancel | 42 ns | 84 ns | 125 ns |
-| Reduce | 125 ns | 167 ns | 167 ns |
+| Submit | 83 ns | 250 ns | 584 ns |
+| Cancel | 42 ns | 84 ns | 250 ns |
+| Reduce | 41 ns | 42 ns | 125 ns |
 
 ### AAPL 2012 L5 dataset
 
 | Operation | p50 | p90 | p99 |
 |-----------|-----|-----|-----|
-| Submit | 500 ns | 1.58 µs | 7.08 µs |
-| Cancel | 42 ns | 84 ns | 125 ns |
-| Reduce | 125 ns | 125 ns | 167 ns |
+| Submit | 42 ns | 208 ns | 375 ns |
+| Cancel | 42 ns | 125 ns | 250 ns |
+| Reduce | below timer resolution | 42 ns | 83 ns |
+
+(Benchmarks were collected using `tools/latency_report` on Release builds and replayed against historical LOBSTER order flow.)
+
+### Benchmark Environment
+
+| Component | Value |
+|------------|---------|
+| Machine | Apple MacBook Air (M4) |
+| Memory | 16 GB |
+| OS | macOS 26.5.2 |
+| Architecture | arm64 |
+| Compiler | Apple Clang 21 |
+| Build | Release (-O3) |
 
 ## Why this project
 
@@ -36,7 +49,7 @@ Most "limit order book" projects stop at correctness against self-written test c
 
 ## Architecture 
 
-Mercury is organsied as a strict layered hierarchy - each layer knows only what it needs to, nothing more :
+Mercury is organized as a strict layered hierarchy - each layer knows only what it needs to, nothing more :
 
 ```text
 LOBSTER Data Files
@@ -70,7 +83,7 @@ OrderBook
     └── PriceIndex
 
 PriceIndex
-- sorted Price -> PriceLevel mapping
+- sorted price-level index
 - binary-search lookup
 
 PriceLevel
@@ -81,11 +94,20 @@ Order
 - mutable execution state
 ```
 
-## Key Features
+## Current Status
 
+Implemented:
+- Limit orders
 - Price-time-priority matching
-- O(1) order cancellation and reduction via intrusive linked orders
-- Strong-type domain model (OrderID, Price, Quantity, Volume, Timestamp, etc.)
-- Replay engine for historical NASDAQ order flow
-- Benchmarking tools for latency measurement
-- Unit-tested matching logic and replay infrastructure
+- Intrusive FIFO price levels
+- Historical replay engine
+- Latency benchmarking
+- Unit and integration tests
+
+Planned:
+- IOC/FOK orders
+- Sparse set implementation
+- Iceberg orders
+- Memory pool allocator
+- Full ITCH feed support
+
