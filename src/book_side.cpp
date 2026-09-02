@@ -20,7 +20,7 @@ namespace mercury {
 
     void BookSide::removeOrder(Order& order) {
         PriceLevel* level = order.level();
-        assert(level != nullptr && "OderLocation contains null PriceLevel");
+        assert(level != nullptr && "removeOrder called with null PriceLevel");
         assert(level->side() == side_ && "removeOrder called with mismatched Side for PriceLevel");
         level->erase(order);
         if (level->empty()) {
