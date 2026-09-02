@@ -41,6 +41,30 @@ Rather than evaluating correctness only through synthetic test cases, Mercury re
 | Compiler | Apple Clang 21 |
 | Build | Release (-O3) |
 
+## Build & Run
+
+### Prerequisites 
+- C++20 compatible compiler
+- CMake 
+- Git
+
+### Build 
+```bash
+cmake -S . -B build_release -DCMAKE_BUILD_TYPE=Release
+cmake --build build_release
+```
+
+### Run Tests 
+Run the complete GoogleTest suite :
+````
+ctest --test-dir build_release --output-on-failure
+````
+To run Latency Benchmarks :
+````
+./build_release/latency_report ./data/messageL1.csv
+./build_release/latency_report ./data/messageL5.csv
+````
+
 ## Why this project
 
 Most "limit order book" projects stop at correctness against self-written test cases. Mercury goes further in three specific ways:
@@ -108,7 +132,7 @@ Benchmarks were run on the same Benchmark Environment before and after the chang
 | Metric | std::list | Intrusive List | Improvement |
 | ------ | -------- | ---------- | --------- |
 | Submit (L1 p50) | 125 ns | 83 ns | 33.6% faster |
-| Submit (L5 p50) | 125 ns | 43 ns | 66.4% faster |
+| Submit (L5 p50) | 125 ns | 42 ns | 66.4% faster |
 | Cancel (L1 p50) | 83 ns | 42 ns | 49.4% faster |
 | Cancel (L5 p50) | 83 ns | 42 ns | 49.4% faster |
 | Submit (L1 p99) | 1084 ns | 584 ns | 46.1% faster |
