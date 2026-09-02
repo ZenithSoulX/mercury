@@ -6,6 +6,8 @@ Mercury is a price-time-priority limit order book and matching engine built in C
 
 Rather than evaluating correctness only through synthetic test cases, Mercury replays historical market events from the LOBSTER dataset and provides tooling for comparing reconstructed book states against LOBSTER reference snapshots. The project emphasizes low-latency data structures, explicit memory ownership, strong type safety, and measurable performance.
 
+## System Architecture
+
 ![Architecture](docs/images/architecture.png)
 
 ## Performance Snapshot (Apple Silicon)
@@ -101,7 +103,7 @@ Early versions of Mercury stored resting orders inside each `PriceLevel` using s
 To improve cache locality and eliminate per-node allocation overhead, the implementation was replaced with an intrusive doubly linked structure, where the linkage pointers are stored directly inside each `Order`.
 
 ### Measured Impact (Release Build)
-Benchmarks were run on the same Benchmark Enviroment before and after the change.
+Benchmarks were run on the same Benchmark Environment before and after the change.
 
 | Metric | std::list | Intrusive List | Improvement |
 | ------ | -------- | ---------- | --------- |
@@ -124,7 +126,7 @@ Implemented:
 - Latency benchmarking
 - Unit and integration tests
 
-Planned:
+Future Work:
 - IOC/FOK orders
 - Sparse set implementation
 - Iceberg orders
