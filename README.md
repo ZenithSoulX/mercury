@@ -113,7 +113,8 @@ PriceIndex
 - binary-search lookup
 
 PriceLevel
-- FIFO queue of resting orders
+- price-level metadata
+- intrusive FIFO list of resting orders
 
 Order
 - immutable identity
@@ -140,6 +141,62 @@ Benchmarks were run on the same Benchmark Environment before and after the chang
 
 This optimization preserved O(1) order removal while significantly reducing latency and memory-management overhead.
 
+## Data & Validation
+
+Mercury includes tooling to replay LOBSTER message files and compare the
+reconstructed order book against the corresponding LOBSTER reference
+snapshots.
+
+The replay infrastructure has been tested using miniature fixtures as well
+as real LOBSTER datasets containing 118K+ L1 events and 301K+ L5 events.
+
+### Why full book-state validation currently produces mismatches
+
+LOBSTER distributes reconstructed order-book snapshots together with a filtered message stream. The supplied message stream does not necessarily contain the complete lifecycle of every order present in the initial book.
+
+As a result, the replay can encounter events such as cancellations or executions for orders that were already active before the supplied message
+window began. Mercury cannot reconstruct an order that it has never received a submission event for.
+
+This creates a boundary-condition problem:
+
+1. An order exists in the LOBSTER reference book at the beginning of the
+   supplied dataset.
+2. Its original submission event occurred outside the supplied message
+   window.
+3. Mercury therefore does not have that order in its reconstructed book.
+4. A later cancellation or execution referring to that order cannot be
+   applied.
+5. From that point onward, Mercury's reconstructed state can diverge from
+   the LOBSTER reference snapshots.
+
+Once the two books diverge, subsequent state comparisons can report many additional mismatches even though the underlying matching rules are behaving correctly for the orders observed by Mercury.
+
+The replay engine explicitly tracks these untracked events rather than
+silently treating them as successful operations.
+
+Therefore, Mercury currently uses the LOBSTER data primarily for **real-world
+replay, workload testing, and performance measurement**, while full
+event-by-event book-state equivalence across the filtered dataset is not
+claimed.
+
+### For running LOBSTER Replay Validation : 
+
+For Level 5 dataset : 
+```bash
+cmake -S . -B build_release -DCMAKE_BUILD_TYPE=Release
+cmake --build build_release
+./build_release/validate_replay \
+    ./data/messageL5.csv \
+    ./data/orderbookL5.csv \
+    5
+```
+For Level 1 dataset : 
+``` bash
+./build_release/validate_replay \
+    ./data/messageL1.csv \
+    ./data/orderbookL1.csv \
+    1
+```
 ## Current Status
 
 Implemented:
