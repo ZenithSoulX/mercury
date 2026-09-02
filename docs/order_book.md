@@ -5,7 +5,7 @@ OrderBook is the core matching engine component for a single trading instrument.
 
 Every order submission, cancellation, and voluntary size reduction in Mercury flows through OrderBook. It is the component that turns individual order instructions into actual trades.
 
-## Responsibilties
+## Responsibilities
 OrderBook is responsible for :
 - Maintaining two `BookSide`s (bids and asks) for one instrument.
 - Executing price-time priority matching when a new order is submitted. 
@@ -22,6 +22,7 @@ OrderBook is **not** responsible for :
 - Publishing market data or maintaining an event log (maybe soon in future)
 
 ## Data Model 
+``` cpp
 struct Trade {
     OrderID incomingId;
     OrderID restingId;
@@ -33,10 +34,12 @@ struct Trade {
 class OrderBook {
     BookSide bids_;
     BookSide asks_;
-    std::unordered_map<OrderID, OrderEntry> order_lookup_;
+    std::unordered_map<OrderID, Order*> order_lookup_;
+    std::size_t peak_active_orders_ = 0;
 };
+```
 
-`OrderEntry` stores an `OrderLocation` ({`PriceLevel*`,`PriceLevel::Iterator`}) which is enough to unlink a specific order from its price level in O(1) without needing to store a seperate `Order*` or `Side`, both of which are recoverable.
+Earlier versions of Mercury stored an `OrderLocation` ({`PriceLevel*`, `PriceLevel::Iterator`}) in the lookup table. This was necessary when `PriceLevel` was implemented using `std::list<Order*>`, since O(1) removal required preserving the iterator identifying an order's position within the list. Following the migration to an intrusive linked structure, an `Order*` alone became sufficient: the order itself now contains the linkage required for removal and maintains a pointer to its containing `PriceLevel`. As a result, `order_lookup_` was simplified to store only `Order*` and `OrderID` while preserving O(1) cancellation and reduction.
 
 ## Matching Algorithm
 On submitOrder(Order& incoming) :
@@ -45,7 +48,7 @@ On submitOrder(Order& incoming) :
     - Get `opposing_side.best()`. If none exists or incoming order's price doesnt cross it, stop.
     - Take `opposing_side.best()->front` (oldest resting order at that price - FIFO) and store it as `resting_order`.
     - Match `min(incoming.remainingQuantity(),resting_order.remainingQuantity())`.
-    - Apply `fill()` to both the orders, reduce the price level's aggregate volume. 
+    - Apply `fill()` to both the orders. The corresponding PriceLevel updates its aggregate volume as part of the removal/fill bookkeeping. 
     - Record a `Trade`.
     - If the `resting_order` is now fully filled, remove it from the book and from `order_lookup_`.
 3. If `incoming` still has remaining quantity and its type allows resting (not `Market`), insert it into its own side and register its `OrderLocation`.
@@ -78,17 +81,18 @@ As per Mercury's overall design, `Exchange` (not yet built) is intended to own `
 | Operation | Complexity | Notes |
 | --------  | ---------- | ----- |
 | Submit (no match, new level) | O(log n)find + O(n)level insert | n = occupied price levels on that side, contiguous shift and cache-friendly for realistic n |
-| Submit (matches k resting orders) | O(k) + level lookups | Each matched level lookup/removal is O(1) amortized |
-| Cancel | O(1) amortized | Hash lookup + instrusive unlink |
+| Submit (matches k resting orders) | O(k) | Each matched level lookup/removal is O(1) amortized |
+| Cancel | O(1) amortized | Hash lookup + intrusive unlink |
 | Reduce | O(1) | Direct field update, no reposition |
 | Best bid/ask | O(1) | Always - sorted-vector *PriceIndex* keeps top-of-book at front()/back() with no rescan-on-empty case |
 
 ## Validation Against Real Data 
-`OrderBook`, driven by `ReplayEngine`, has been validated against real NASDAQ TotalView-ITCH data (LOBSTER sample, AAPL 2012 L1 and 2013 L5 depth). 
+`OrderBook`, driven by `ReplayEngine`, has been replayed against historical NASDAQ TotalView-ITCH order flow
+distributed through the LOBSTER sample dataset. 
 
 **Findings** :
 - Core matching, cancellation, and reduction logic is correct and produces plausible, stable book state across a full trading day (118,497 events in L1 and 301,587 events in L5). 
-- A measurable fraction of message-file events (partial cancellations and deletions) reference orders that predate the sample window which includes resting liquidity present at market open with no corresponding `Submission` event in the file. These are correctly treated as no-ops by `cancelOrder`/`reduceOrder` (since the referenced `OrderID` was never seen), and are counted, not silently ignored — see `ReplayEngine.md` for exact figures and reasoning.
+- A measurable fraction of message-file events (partial cancellations and deletions) reference orders that predate the sample window which includes resting liquidity present at market open with no corresponding `Submission` event in the file. These are correctly treated as no-ops by `cancelOrder`/`reduceOrder` (since the referenced `OrderID` was never seen), and are counted, not silently ignored — see `ReplayEngine.md` for exact reasoning.
 
 ## Design Decisions 
 
@@ -105,4 +109,4 @@ Multi-level access should be added as a purpose-built method returning copied da
 - Multi-symbol Exchange layer, with OrderBook per symbol and a shared Order memory pool.
 - Self-trade prevention (requires a trader/owner identifier which is not currently modeled on `Order`).
 
-`Last updated` : 27th Aug 2026 
+`Last updated` : 3rd Sept 2026 
