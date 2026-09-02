@@ -2,11 +2,10 @@
 # Order
 
 ## Purpose
+
 An `Order` represents a single trading instruction submitted to the exchange.
 
-It encapsulates the intent of a participant to buy or sell a specified quantity of an asset under a given set of constraints (price, order type, and time-in-force).
-
-The Order is the fundamental domain entity of Mercury. Every operation performed by the exchange ultimately acts upon one or more Order objects.
+The Order is the fundamental domain entity of Mercury. It encapsulates the intent of a participant to buy or sell a specified quantity of an asset under a given set of constraints (price, order type, and time-in-force).
 
 ## Responsibilities
 
@@ -77,7 +76,7 @@ Market orders are exempt from this constraint.
 ### Lifecycle
 Every newly constructed Order begins in the **Active** state.
 
-The object itself is responsible for maintaining valid status transitions.
+The object itself is responsible for maintaining valid status transitions. Invalid transitions are rejected through assertions during development builds.
 
 ## Lifecycle of Order
 
@@ -117,15 +116,11 @@ This mirrors the behaviour of real electronic exchanges.
 
 ### Deleted Copy and Move Operations
 
-Orders represent real trading instructions.
+Orders are intentionally non-copyable and non-movable.
 
-Creating another object with the same identity would violate the exchange model and could introduce subtle bugs.
+The order book stores stable references to active orders. Allowing an order to be moved would invalidate those references and break constant-time cancellation and modification operations.
 
-Orders are therefore intended to be:
-
-- constructed once,
-- owned by the Exchange,
-- accessed through stable pointers or references.
+Preventing copy construction also preserves the one-object-per-order model used throughout the engine.
 
 ### Private Mutation
 
@@ -167,13 +162,13 @@ A reduction :
 ## Ownership
 
 Orders are owned by the component responsible for their storage.
-In the current implementation, orders are stored by the Replay Engine during historical replay and referenced by the OrderBook through stable pointers.
+In the current implementation, orders are stored by the `ReplayEngine` during historical replay and referenced by the OrderBook through stable pointers.
 Future versions may replace this storage with a dedicated exchange-level memory pool while preserving stable order identity.
 
 Other components reference Orders but do not own them.
 
 ```
-Exchange
+ReplayEngine
     │
     ├── owns Orders
     │
@@ -182,6 +177,14 @@ Exchange
     ├── Market Data ------ references
     └── Replay Engine ---- references
 ```
+
+### Relationship with Price Levels
+
+Orders do not know which PriceLevel or OrderBook they belong to.
+
+Instead, PriceLevel maintains the FIFO ordering required for price-time priority, while Order maintains only its own execution state and identity.
+
+This separation keeps the Order abstraction small and prevents business logic from leaking into the domain object.
 
 This ownership model guarantees stable identity throughout the lifetime of an Order.
 
@@ -221,10 +224,10 @@ Explicitly scoped out of the current version, with reasoning:
 
 The `Order` class is intentionally small.
 
-It is a domain object—not a matching engine, not an order book, and not a trading strategy.
+It is a domain object, not a matching engine, not an order book, and not a trading strategy.
 
 Its purpose is simply to represent a valid trading instruction while maintaining its own invariants throughout its lifetime.
 
 Every other subsystem in Mercury is built upon this foundation.
 
-`Last updated` : 27th Aug 2026 
+`Last updated` : 3rd Sept 2026 

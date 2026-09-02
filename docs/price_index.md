@@ -13,6 +13,7 @@ It is **not** responsible for :
 - Matching, order ownership or market state.
 
 ## Data Model
+``` cpp
 struct PriceLevelEntry {
     Price price;
     std::unique_ptr<PriceLevel> level;
@@ -20,16 +21,19 @@ struct PriceLevelEntry {
 class PriceIndex {
     std::vector<PriceLevelEntry> levels_;
 };
+```
 
 ## Design Decisions
 1. Chose sorted `std::vector` and not `std::map` or a dense array-ladder because :
     - Red-black tree nodes are scattered across the heap, giving poor cache locality for a structure accessed on nearly every operation.
     - A dense, price-indexed array requires committing to a bounded price range up front and pays a real memory cost for sparse occupancy. 
-    - vector was a middle ground even though it has O(log(n)) lookup since it is contiguous, cache-friendly and with exactly one structure to keep consistent.
+    - vector was a middle ground even though it has O(log(n)) lookup, because it is contiguous, cache-friendly and with exactly one structure to keep consistent.
 
-2. Insertion and removal is O(n) and not O(log(n)) and finding the position is O(log(n)). This is stated honestly rather than rounded up : for realistic numbers of occupied price levels, a contiguous shift is typically faster in practice than a tree rebalance, despite larger asymptotic bound, precisely because it's a cache-friendly memmove rather than pointer-chasing. 
+2. Insertions and removals require O(n) element movement after an O(log n) position lookup (since lookups use binary search (`std::lower_bound()`)). Despite the higher asymptotic cost, contiguous memory movement is often faster in practice than tree rebalancing for the relatively small number of occupied price levels typically observed in an order book. 
 
-3. `unique_ptr<PriceLevel>` keeps `PriceLevelEntry` cheap to move during vector reshuffling since it is equivalent to moving a pointer and not a whole `PriceLevel` and it gives every level a stable address independent of the vector's own reallocation. 
+3. `PriceIndex` is non-copyable but movable. Copying would require duplicating ownership of every `PriceLevel`, while move semantics allow the index to transfer ownership efficently when needed. 
+
+4. `unique_ptr<PriceLevel>` keeps `PriceLevelEntry` cheap to move during vector reshuffling since it is equivalent to moving a pointer and not a whole `PriceLevel` and it gives every level a stable address independent of the vector's own reallocation. 
 
 ## Invariants 
 `PriceIndex` never holds an empty `PriceLevel`. This is enforced by the callers (`BookSide::removeOrder()` erases the index entry the moment a level empties) and checked in debug builds via `verifyInvariants()`. 
@@ -43,7 +47,10 @@ This keeps `size()`/iteration/best-price queries meaningful without checking nul
 | getOrCreate/erase | O(log(n)) find + O(n) shift |
 | Best (front/back) | O(1) |
 
-## Future Extensions (Author's Notes)
-`std::vector` may be replaced with a Sparse set bu right now I am not sure if this is the actual bottleneck and contributing meaningfully to the tail latency spike. Right now my first priority is to shift to intrusive-list conversion. 
+### Future Extensions
 
-`Last Updated ` : 29th Aug 2026
+A sparse-set based implementation is a potential future optimization.
+
+The current sorted-vector design was selected because occupied price levels are typically sparse and lookup performance is already competitive due to cache locality. Before introducing a more complex structure, profiling should demonstrate that PriceIndex is a meaningful contributor to overall latency.
+
+`Last Updated ` : 3rd Sept 2026
