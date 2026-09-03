@@ -214,3 +214,22 @@ Future Work:
 - Memory pool allocator
 - Full ITCH feed support
 
+## Documentation
+Mercury is accompanied by detailed design documentation covering the reasoning behind the system architecture, domain model, replay infrastructure, validation methodology, and performance measurements.
+
+These documents focus on design decisions, invariants, ownership models, complexity guarantees, and trade-offs made during implementation.
+
+- [`Design Principles`](docs/design_principles.md)
+- [`Order`](docs/order.md)
+- [`PriceLevel`](docs/price_level.md)
+- [`PriceIndex`](docs/price_index.md)
+- [`BookSide`](docs/book_side.md)
+- [`OrderBook`](docs/order_book.md)
+- [`ReplayEngine`](docs/replay_engine.md)
+- [`LobsterParser`](docs/lobster_parser.md)
+- [`BookValidator`](docs/book_validator.md)
+
+## Author
+
+**Rahul Singh**  
+[zenithsoulx.dev@gmail.com](mailto:zenithsoulx.dev@gmail.com)
