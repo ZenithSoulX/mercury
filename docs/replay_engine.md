@@ -51,6 +51,22 @@ A resting order's lifecycle events can only be applied if `ReplayEngine` previou
 
 This is a property of validating against a bounded slice of continous real order flow (it cannot explain a state that originated before the window began) and not a defect in matching or dispatch logic (See OrderBook.md, Validation Against Real Data).
 
+### Representative results:
+
+AAPL L1 2013:
+- Untracked partial cancel: 115
+- Untracked deletions: 13,730
+- Hidden executions: 11,332
+- Untracked visible execution: 0
+- Trading halts: 0
+
+AAPL L5 2012:
+- Untracked partial deletions: 300
+- Untracked deletions: 25,999
+- Hidden executions: 11,332
+- Untracked visible execution: 0
+- Trading halts: 0
+
 ## Latency Instrumentation 
 `ReplayEngine` records per-operation latency around the exact `OrderBook` call for each dispatched event, using `std::chrono::steady_clock`. These vectors feed the percentile analysis in `tools/latency_report`.
 
