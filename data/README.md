@@ -6,10 +6,10 @@ Datasets are not distributed with the repository.
 
 Expected files:
 
-- AAPL_2013_message_L1.csv
-- AAPL_2013_orderbook_L1.csv
-- AAPL_2012_message_L5.csv
-- AAPL_2012_orderbook_L5.csv
+- AAPL_2012-06-21_34200000_57600000_message_1.csv
+- AAPL_2012-06-21_34200000_57600000_orderbook_1.csv
+- AAPL_2012-06-21_34200000_57600000_message_5.csv
+- AAPL_2012-06-21_34200000_57600000_orderbook_5.csv
 
 Source:
 LOBSTER sample datasets.

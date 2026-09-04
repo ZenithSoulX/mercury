@@ -56,13 +56,12 @@ cmake --build build_release
 
 ### Run Tests 
 Run the complete GoogleTest suite :
-````
+```` bash
 ctest --test-dir build_release --output-on-failure
 ````
 To run Latency Benchmarks :
-````
-./build_release/latency_report ./data/messageL1.csv
-./build_release/latency_report ./data/messageL5.csv
+```` bash
+./build_release/latency_report path/to/message.csv
 ````
 
 ## Why this project
@@ -186,15 +185,17 @@ For Level 5 dataset :
 cmake -S . -B build_release -DCMAKE_BUILD_TYPE=Release
 cmake --build build_release
 ./build_release/validate_replay \
-    ./data/messageL5.csv \
-    ./data/orderbookL5.csv \
+    path/to/message.csv \
+    path/to/orderbook.csv \
     5
 ```
 For Level 1 dataset : 
 ``` bash
+cmake -S . -B build_release -DCMAKE_BUILD_TYPE=Release
+cmake --build build_release
 ./build_release/validate_replay \
-    ./data/messageL1.csv \
-    ./data/orderbookL1.csv \
+    path/to/message.csv \
+    path/to/orderbook.csv \
     1
 ```
 ## Current Status
