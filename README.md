@@ -19,6 +19,8 @@ Rather than evaluating correctness only through synthetic test cases, Mercury re
 | AAPL 2012 L1 | 118,497 | 1.75 M events/sec |
 | AAPL 2012 L5 | 301,587 | 2.20 M events/sec |
 
+**Observation :** The L5 benchmark exhibits higher throughput than L1 despite processing more messages. Analysis suggests this is due to workload composition: a larger proportion of cancellation and reduction events, which are substantially cheaper than order submissions and matching operations. Latency distributions for core operations remain comparable across datasets.
+
 ### AAPL 2012 L1 dataset
 
 | Operation | p50 | p90 | p99 |
