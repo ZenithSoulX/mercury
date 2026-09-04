@@ -44,39 +44,14 @@ int main(int argc, char** argv) {
               << static_cast<std::uint64_t>(throughput)
               << " events/sec\n";
 
-    std::cout
-        << "Hidden executions : "
-        << engine.hiddenExecutionCount()
-        << '\n';
-
     std::cout 
         << "Trades generated : "
         << engine.tradeCount()
         <<'\n';
 
     std::cout
-        <<"Active orders : "
-        << book.orderCount()
-        <<'\n';
-
-    std::cout
         << "Peak active orders : "
         << book.peakActiveOrders()
-        << '\n';
-
-    std::cout
-        << "Untracked Type 2 : "
-        << engine.untrackedPartialCancelCount()
-        << '\n';
-
-    std::cout
-        << "Untracked Type 3 : "
-        << engine.untrackedDeletionCount()
-        << '\n';
-
-    std::cout
-        << "Untracked Type 4 : "
-        << engine.untrackedVisibleExecutionCount()
         << '\n';
 
     return 0;
