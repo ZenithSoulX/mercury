@@ -12,7 +12,14 @@ Rather than evaluating correctness only through synthetic test cases, Mercury re
 
 ## Performance Snapshot (Apple Silicon)
 
-### AAPL 2013 L1 dataset
+### Replay Throughput
+
+| Dataset | Events | Throughput |
+|---------|--------|------------|
+| AAPL 2012 L1 | 118,497 | 1.75 M events/sec |
+| AAPL 2012 L5 | 301,587 | 2.20 M events/sec |
+
+### AAPL 2012 L1 dataset
 
 | Operation | p50 | p90 | p99 |
 |-----------|-----|-----|-----|
@@ -180,24 +187,23 @@ claimed.
 
 ### For running LOBSTER Replay Validation : 
 
-For Level 5 dataset : 
-```bash
-cmake -S . -B build_release -DCMAKE_BUILD_TYPE=Release
-cmake --build build_release
-./build_release/validate_replay \
-    path/to/message.csv \
-    path/to/orderbook.csv \
-    5
-```
-For Level 1 dataset : 
+For Level N dataset : 
 ``` bash
 cmake -S . -B build_release -DCMAKE_BUILD_TYPE=Release
 cmake --build build_release
 ./build_release/validate_replay \
     path/to/message.csv \
     path/to/orderbook.csv \
-    1
+    N
 ```
+
+### For replaying throughput :
+``` bash
+cmake -S . -B build_release -DCMAKE_BUILD_TYPE=Release
+cmake --build build_release
+./build_release/benchmark_replay path/to/message.csv
+```
+
 ## Current Status
 
 Implemented:
