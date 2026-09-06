@@ -10,6 +10,7 @@ namespace mercury{
         double p90;
         double p95;
         double p99;
+        double p999;
         double max;
     };
     LatencyStats compute_stats(std::vector<std::int64_t> data);

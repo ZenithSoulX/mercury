@@ -17,6 +17,7 @@ namespace mercury {
             pick(0.90),
             pick(0.95),
             pick(0.99),
+            pick(0.999),
             data.empty()?0.0:static_cast<double>(data.back())
         };
     }
@@ -26,6 +27,7 @@ namespace mercury {
             <<" p50 = "<<stats.p50<<"ns"
             <<" p90 = "<<stats.p90<<"ns"
             <<" p99 = "<<stats.p99<<"ns"
+            <<" p99.9 = "<<stats.p999<<"ns"
             <<" max = "<<stats.max<<"ns\n";
     }
 }
