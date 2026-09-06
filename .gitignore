@@ -4,8 +4,9 @@
 *.o
 *.obj
 *.exe
-*.csv
 data/*
+*.csv
+!tests/fixtures/*.csv
 /build_release/
 !data/README.md
 cmake-build-*/
