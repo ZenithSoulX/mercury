@@ -23,19 +23,22 @@ Rather than evaluating correctness only through synthetic test cases, Mercury re
 
 ### AAPL 2012 L1 dataset
 
-| Operation | p50 | p90 | p99 |
-|-----------|-----|-----|-----|
-| Submit | 83 ns | 250 ns | 584 ns |
-| Cancel | 42 ns | 84 ns | 250 ns |
-| Reduce | 41 ns | 42 ns | 125 ns |
+| Operation | p50 | p90 | p99 | p99.9 |
+|-----------|-----|-----|-----| ----- |
+| Submit | 83 ns | 250 ns | 584 ns | 1750 ns |
+| Cancel | 42 ns | 84 ns | 209 ns | 250 ns | 
+| Reduce | 41 ns | 42 ns | 125 ns | N/A (<3k ops) |
 
 ### AAPL 2012 L5 dataset
 
-| Operation | p50 | p90 | p99 |
-|-----------|-----|-----|-----|
-| Submit | 42 ns | 208 ns | 375 ns |
-| Cancel | 42 ns | 125 ns | 250 ns |
-| Reduce | below timer resolution | 42 ns | 83 ns |
+| Operation | p50 | p90 | p99 | p99.9 |
+|-----------|-----|-----|-----| ----- |
+| Submit | 42 ns | 167 ns | 375 ns | 875 ns |
+| Cancel | 42 ns | 125 ns | 250 ns | 292 ns |
+| Reduce | below timer resolution | 42 ns | 83 ns | N/A (<3k ops) | 
+
+**Note:** `max` latency is still reported by `latency_report`, but it is intentionally omitted from the performance snapshot because it is highly sensitive to system noise and external interruptions. 
+Percentile-based metrics (`p50`, `p90`, `p99`, and `p99.9`) provide a more representative view of the engine's latency characteristics.
 
 (Benchmarks were collected using `tools/latency_report` on Release builds and replayed against historical LOBSTER order flow.)
 
