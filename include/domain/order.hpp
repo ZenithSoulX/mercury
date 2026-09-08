@@ -17,8 +17,6 @@ namespace mercury {
     class PriceLevel;
     class Order {
         private:
-            // TODO : Decide which component (MatchingEngine or OrderBook) is allowed to mutate order state.
-            // Resolved: only OrderBook may mutate order lifecycle state.
             friend class OrderBook;  
             friend class PriceLevel;
             const OrderID id_;
