@@ -14,6 +14,28 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 enable_testing()
 include(FetchContent)
 
+option(MERCURY_ENABLE_SANITIZERS "Enable sanitizers" ON)
+
+if(MERCURY_ENABLE_SANITIZERS AND NOT MSVC)
+    add_compile_options(
+        -fsanitize=address,undefined
+        -fno-omit-frame-pointer
+    )
+    add_link_options(
+        -fsanitize=address,undefined
+    )
+endif()
+
+if(MSVC)
+    add_compile_options(/W4)
+else()
+    add_compile_options(
+        -Wall
+        -Wextra
+        -Wpedantic
+    )
+endif()
+
 FetchContent_Declare(
     googletest
     GIT_REPOSITORY https://github.com/google/googletest.git
@@ -24,6 +46,9 @@ FetchContent_Declare(
     GIT_REPOSITORY https://github.com/google/benchmark.git
     GIT_TAG v1.9.1
 )
+
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "" FORCE)
 
 FetchContent_MakeAvailable(googletest)
 FetchContent_MakeAvailable(benchmark)
@@ -40,40 +65,12 @@ add_library(mercury
     src/lobster_orderbook_parser.cpp
 )
 
-add_subdirectory(tests)
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "" FORCE)
-
-
-if(MSVC)
-    add_compile_options(/W4)
-else()
-    add_compile_options(
-        -Wall
-        -Wextra
-        -Wpedantic
-    )
-endif()
-
-option(MERCURY_ENABLE_SANITIZERS "Enable sanitizers" ON)
-
-if(MERCURY_ENABLE_SANITIZERS AND NOT MSVC)
-    add_compile_options(
-        -fsanitize=address,undefined
-        -fno-omit-frame-pointer
-    )
-    add_link_options(
-        -fsanitize=address,undefined
-    )
-    
-endif()
-
-
-
 target_include_directories(mercury
     PUBLIC
         ${PROJECT_SOURCE_DIR}/include
 )
+
+add_subdirectory(tests)
 
 add_executable(layout
     experiments/layout.cpp
@@ -88,16 +85,11 @@ add_executable(replay_demo
     experiments/replay_demo.cpp
 )
 
-target_link_libraries(replay_demo
-    PRIVATE
-        mercury
-)
-
-add_executable(lobster_stats
-    experiments/lobster_stats.cpp)
- target_link_libraries(lobster_stats
-    PRIVATE
-        mercury)
+target_link_libraries(replay_demo PRIVATE mercury)
+add_executable(deque_order_test experiments/order_cons.cpp)
+target_link_libraries(deque_order_test PRIVATE mercury) 
+add_executable(lobster_stats experiments/lobster_stats.cpp)
+target_link_libraries(lobster_stats PRIVATE mercury)
 add_executable(replay_smoke_test tools/replay_smoke_test.cpp)
 target_link_libraries(replay_smoke_test PRIVATE mercury)
 

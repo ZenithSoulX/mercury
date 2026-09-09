@@ -53,6 +53,16 @@ Percentile-based metrics (`p50`, `p90`, `p99`, and `p99.9`) provide a more repre
 | Compiler | Apple Clang 21 |
 | Build | Release (-O3) |
 
+## Testing & Verification 
+
+Mercury is verified using:
+
+- **GoogleTest** unit tests covering core order book, parser, and replay functionality.
+- **AddressSanitizer (ASan)** and **UndefinedBehaviorSanitizer (UBSan)** builds for memory-safety and undefined-behavior detection.
+- End-to-end replay smoke tests on representative datasets.
+
+(For running the entire test suite, refer to the section below)
+
 ## Build & Run
 
 ### Prerequisites 
@@ -60,21 +70,22 @@ Percentile-based metrics (`p50`, `p90`, `p99`, and `p99.9`) provide a more repre
 - CMake 
 - Git
 
-### Build 
+### Run Tests 
+To run the test suite:
+
 ```bash
-cmake -S . -B build_release -DCMAKE_BUILD_TYPE=Release
-cmake --build build_release
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DMERCURY_ENABLE_SANITIZERS=ON
+cmake --build build
+ctest --test-dir build --output-on-failure
 ```
 
-### Run Tests 
-Run the complete GoogleTest suite :
-```` bash
-ctest --test-dir build_release --output-on-failure
-````
+### Run Latency Benchmarks
 To run Latency Benchmarks :
-```` bash
+```bash
+cmake -S . -B build_release -DCMAKE_BUILD_TYPE=Release -DMERCURY_ENABLE_SANITIZERS=OFF
+cmake --build build_release
 ./build_release/latency_report path/to/message.csv
-````
+```
 
 ## Why this project
 
