@@ -160,10 +160,10 @@ Benchmarks were run on the same Benchmark Environment before and after the chang
 | Cancel (L5 p50) | 83 ns | 42 ns | 49.4% faster |
 | Submit (L1 p99) | 1084 ns | 584 ns | 46.1% faster |
 | Submit (L5 p99) | 1042 ns | 375 ns | 64.0% faster |
-| Submit (L1 p99.9) | 2958 ns | 1750 ns | 40.8% | 
-| Submit (L5 p99.9) | 1958 ns | 875 ns | 55.3% |
-| Cancel (L1 p99.9) | 583 ns | 250 ns | 57.11% |
-| Cancel (L5 p99.9) | 584 ns | 292 ns | 50.0% |
+| Submit (L1 p99.9) | 2958 ns | 1750 ns | 40.8% faster | 
+| Submit (L5 p99.9) | 1958 ns | 875 ns | 55.3% faster |
+| Cancel (L1 p99.9) | 583 ns | 250 ns | 57.1% faster |
+| Cancel (L5 p99.9) | 584 ns | 292 ns | 50.0% faster |
 
 This optimization preserved O(1) order removal while significantly reducing latency and memory-management overhead.
 
