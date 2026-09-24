@@ -234,12 +234,28 @@ Implemented:
 - Latency benchmarking
 - Unit and integration tests
 
-Future Work:
-- IOC/FOK orders
-- Sparse set implementation
-- Iceberg orders
-- Memory pool allocator
-- Full ITCH feed support
+## Future Work
+
+- **IOC/FOK Order Support :**  
+  Extend the matching engine to support additional time-in-force instructions commonly used in electronic trading systems.
+
+- **Iceberg Orders :**  
+  Implement reserve quantity handling and hidden liquidity replenishment while preserving price-time priority semantics.
+
+- **Memory Pool Allocator :**  
+  Replace general-purpose allocations with a fixed-capacity arena and free-list allocator to achieve zero heap allocations along the hot    path and improve latency determinism.
+
+- **Sparse-Set Order Lookup :**  
+  Explore sparse-set based indexing as an alternative to hash-table lookups for lower-overhead order access patterns.
+
+- **Binary Market Data Ingestion (NASDAQ ITCH 5.0) :**  
+  Replace CSV-based replay inputs with direct parsing of exchange-style binary market data feeds to better model production trading         infrastructure.
+
+- **Linux Performance Profiling :**  
+  Port benchmarking workflows to Linux and analyze cache behavior, branch prediction efficiency, and pipeline stalls using `perf`.
+
+- **Hardware-Software Co-Design Extension :**  
+  Investigate FPGA-oriented packet parsing and market-data preprocessing using Vitis HLS as a study of hardware acceleration techniques     employed in low-latency trading systems.
 
 ## Documentation
 Mercury is accompanied by detailed design documentation covering the reasoning behind the system architecture, domain model, replay infrastructure, validation methodology, and performance measurements.
