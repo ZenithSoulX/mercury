@@ -23,7 +23,11 @@ namespace mercury {
     class PriceIndex {
         public:
             using Container = std::vector<PriceLevelEntry>;
-            using Iterator = std::vector<PriceLevelEntry>::iterator; //Any insertion or erase may invalidate iterators and pointers into the vector, so we don't expose them to clients. Clients should use PriceLevel* instead.
+            /* Any insertion or erase may invalidate iterators and pointers 
+            * into the vector, so we don't expose them to clients.
+            *  Clients should use PriceLevel* instead.
+            */
+            using Iterator = std::vector<PriceLevelEntry>::iterator; 
             using ConstIterator = std::vector<PriceLevelEntry>::const_iterator;
 
             PriceIndex() = default;
