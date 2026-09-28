@@ -2,7 +2,6 @@
 #include <cstdint>
 #include <compare>
 #include <stdexcept>
-#include <cassert>
 #include <functional>
 
 namespace mercury {
