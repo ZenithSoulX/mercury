@@ -24,7 +24,6 @@ namespace mercury {
     #ifndef NDEBUG
         verifyInvariants();
     #endif
-        return;
     }
     void PriceLevel::removeFront(){
         assert(head_ != nullptr && "Cannot remove from an empty PriceLevel");
